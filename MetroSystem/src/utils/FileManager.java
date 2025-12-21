@@ -23,7 +23,7 @@ public class FileManager {
 	// Customers
 	private static final String CUSTOMERS_FILE_PATH = DATA_FOLDER + File.separator + "customers_db.txt";
 	// Stations
-	private static final String STATIONS_FILE_PATH = DATA_FOLDER + File.separator + "stations_db.txt";
+//	private static final String STATIONS_FILE_PATH = DATA_FOLDER + File.separator + "stations_db.txt";
 	// Trains
 	private static final String TRAINS_FILE_PATH = DATA_FOLDER + File.separator + "trains_db.txt";
 
@@ -42,7 +42,7 @@ public class FileManager {
 			createFileIfNotExists(TICKETS_FILE_PATH);
 			createFileIfNotExists(ORDERS_FILE_PATH);
 			createFileIfNotExists(CUSTOMERS_FILE_PATH);
-			createFileIfNotExists(STATIONS_FILE_PATH);
+//			createFileIfNotExists(STATIONS_FILE_PATH);
 			createFileIfNotExists(TRAINS_FILE_PATH);
 
 		} catch (IOException e) {
@@ -63,7 +63,6 @@ public class FileManager {
 
 	public static void saveCustomer(Customer c) {
 		try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(CUSTOMERS_FILE_PATH, true)))) {
-			// ID,PHONE,NAME
 			String line = String.format("%s,%s,%s", c.getId(), c.getPhoneNumber(), c.getName());
 			writer.println(line);
 		} catch (IOException e) {
@@ -87,10 +86,10 @@ public class FileManager {
 					continue;
 
 				String id = parts[0];
-				String phone = parts[1];
+				String phoneNumber = parts[1];
 				String name = parts[2];
 
-				Customer c = new Customer(id, phone, name);
+				Customer c = new Customer(id, phoneNumber, name);
 				customersDB.put(id, c);
 			}
 			System.out.println("[FILE] Đã Load " + customersDB.size() + " customers.");
@@ -103,70 +102,69 @@ public class FileManager {
 	// STATIONS - stations_db.txt
 	// Format: ID,NAME
 
-	public static void saveStation(Station s) {
-		try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(STATIONS_FILE_PATH, true)))) {
-			String line = String.format("%s,%s", s.getId(), s.getName());
-			writer.println(line);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static Map<String, Station> loadStations() {
-		Map<String, Station> stationsDB = new HashMap<>();
-		File file = new File(STATIONS_FILE_PATH);
-		if (!file.exists())
-			return stationsDB;
-
-		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-			String line;
-			while ((line = br.readLine()) != null) {
-				if (line.trim().isEmpty())
-					continue;
-				String[] parts = line.split(",");
-				if (parts.length < 2)
-					continue;
-
-				String id = parts[0];
-				String name = parts[1];
-
-				Station s = new Station(id, name);
-				stationsDB.put(id, s);
-			}
-			System.out.println("[FILE] Đã load " + stationsDB.size() + " stations.");
-		} catch (Exception e) {
-			System.out.println("[ERROR] Load stations thất bại: " + e.getMessage());
-		}
-		return stationsDB;
-	}
+//	public static void saveStation(Station s) {
+//		try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(STATIONS_FILE_PATH, true)))) {
+//			String line = String.format("%s,%s", s.getId(), s.getName());
+//			writer.println(line);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
+//
+//	public static Map<String, Station> loadStations() {
+//		Map<String, Station> stationsDB = new HashMap<>();
+//		File file = new File(STATIONS_FILE_PATH);
+//		if (!file.exists())
+//			return stationsDB;
+//
+//		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+//			String line;
+//			while ((line = br.readLine()) != null) {
+//				if (line.trim().isEmpty())
+//					continue;
+//				String[] parts = line.split(",");
+//				if (parts.length < 2)
+//					continue;
+//
+//				String id = parts[0];
+//				String name = parts[1];
+//
+//				Station s = new Station(id, name);
+//				stationsDB.put(id, s);
+//			}
+//			System.out.println("[FILE] Đã load " + stationsDB.size() + " stations.");
+//		} catch (Exception e) {
+//			System.out.println("[ERROR] Load stations thất bại: " + e.getMessage());
+//		}
+//		return stationsDB;
+//	}
 
 	// TICKETS - tickets_db.txt
 
 	// Save 1 vé
+	// Format: ID,TYPE,PRICE,STATUS,ISSUED_DATE
 	public static void saveTicket(Ticket t) {
 		try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(TICKETS_FILE_PATH, true)))) {
 			StringBuilder line = new StringBuilder();
-			// Base info: ID,TYPE,PRICE,STATUS,DATE
 			line.append(t.getTicketId()).append(",");
 			line.append(t.getType()).append(",");
 			line.append(t.getPrice()).append(",");
 			line.append(t.getStatus()).append(",");
 			line.append(t.getIssuedDate().format(DATE_FMT));
 
-			// Extra info based on Type
+			// dựa vào tùy type mà có thêm thông tin khác
 			if (t.getType() == TicketType.SINGLE) {
-				SingleTicket st = (SingleTicket) t;
-				// Format: ,START_ID,END_ID
-				line.append(",").append(st.getStartStation().getId());
-				line.append(",").append(st.getEndStation().getId());
-			} else if (t.getType() == TicketType.MONTHLY) {
-				MonthlyTicket mt = (MonthlyTicket) t;
-				// Format: ,CUST_ID
-				// Nếu Customer null thì ghi UNKNOWN
-				String custId = (mt.getCustomer() != null) ? mt.getCustomer().getId() : "UNKNOWN";
-				line.append(",").append(custId);
+				// Format: START_ID,END_ID
+				line.append(",").append(((SingleTicket)t).getStartStation().getId());
+				line.append(",").append(((SingleTicket)t).getEndStation().getId());
+			} else {
+				Customer customer = null;
+				if (t instanceof MonthlyTicket) customer = ((MonthlyTicket)t).getCustomer();
+				else if (t instanceof DailyTicket) customer = ((DailyTicket)t).getCustomer();
+				
+				String cusId = (customer != null) ? customer.getId() : "UNKNOWN";
+				line.append(",").append(cusId);
 			}
-			// DAILY ko cần thêm gì
 
 			writer.println(line.toString());
 		} catch (IOException e) {
@@ -205,7 +203,7 @@ public class FileManager {
 						s1 = findStationById(route, parts[5]);
 						s2 = findStationById(route, parts[6]);
 					}
-					// Fallback nếu ko tìm thấy trạm
+					// lỡ không tìm thấy fallback
 					if (s1 == null)
 						s1 = route.getStations().get(0);
 					if (s2 == null)
@@ -213,24 +211,20 @@ public class FileManager {
 
 					t = new SingleTicket(id, price, s1, s2);
 					break;
-
-				case MONTHLY:
-					Customer owner = null;
-					if (parts.length >= 6) {
-						String custId = parts[5];
-						if (customersDB != null) {
-							owner = customersDB.get(custId);
-						}
+				//daily với monthly
+				default:
+					Customer customer = null;
+					if (parts.length >= 6 && customersDB != null) {
+						customer = customersDB.get(parts[5]);
 					}
-					// Fallback owner
-					if (owner == null)
-						owner = new Customer("UNKNOWN", "N/A", "Unknown Guest");
-
-					t = new MonthlyTicket(id, price, owner);
-					break;
-
-				case DAILY:
-					t = new DailyTicket(id, price);
+					if (customer == null)
+						customer = new Customer("ID UNKNOWN", "No PhoneNumber", "Unknown Guest");
+					//
+					if(type == TicketType.DAILY) 
+						t = new DailyTicket(id, price, customer);
+					else 
+						t = new MonthlyTicket(id, price, customer);
+					
 					break;
 				}
 
@@ -266,8 +260,8 @@ public class FileManager {
 			line.append(o.getOrderDate().format(DATE_FMT)).append(",");
 			line.append(o.getTotalPrice()).append(",");
 
-			// Nối các ticketID lại bằng dấu gạch đứng |
-			// Stream API cho gọn, hoặc dùng for loop
+			//nối ticketID lại bằng dấu gạch đứng |
+			// đoạn này dùng Stream API cho gọn, hoặc có thể dùng for loop
 			String ticketIds = o.getTickets().stream().map(Ticket::getTicketId).collect(Collectors.joining("|"));
 
 			line.append(ticketIds);
@@ -290,29 +284,32 @@ public class FileManager {
 				if (line.trim().isEmpty())
 					continue;
 				String[] parts = line.split(",");
-				// Cần ít nhất ID, DATE, PRICE. Cột ticketIds có thể rỗng nếu order rỗng (hiếm)
 				if (parts.length < 3)
 					continue;
 
 				String orderId = parts[0];
 				LocalDateTime date = LocalDateTime.parse(parts[1], DATE_FMT);
-				// double totalPrice = Double.parseDouble(parts[2]); // Có thể tính lại từ list
-				// vé
-
+				double savedTotalPrice = Double.parseDouble(parts[2]); 
+			
 				Order order = new Order(orderId);
-				order.setOrderDate(date); // Nhớ thêm setter này vào Order
+				order.setOrderDate(date); 
+				
+				// set về giá 0 để k bị cộng dồn thừa
+				order.setTotalPrice(0);
 
-				// Parse list ticket IDs
 				if (parts.length >= 4) {
-					String[] tIds = parts[3].split("\\|"); // Escape pipe char
+					String[] tIds = parts[3].split("\\|"); 
 					for (String tId : tIds) {
 						if (ticketsDB.containsKey(tId)) {
+							//addTicket có cộng dồn giá sẵn
 							order.addTicket(ticketsDB.get(tId));
-						} else {
-							// System.out.println("Warning: Ticket ID " + tId + " not found in DB.");
 						}
 					}
 				}
+				// ở đây có thể bỏ setTotalPrice vì khi addTicket vô order thì đã tự 
+				// cộng dồn price
+                order.setTotalPrice(savedTotalPrice);
+                
 				orders.add(order);
 			}
 			System.out.println("[FILE] Đã load " + orders.size() + " orders.");

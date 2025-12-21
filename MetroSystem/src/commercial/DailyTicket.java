@@ -6,17 +6,21 @@ import infrastructure.Station;
 
 public class DailyTicket extends Ticket {
 	private LocalDateTime expiryDate;
+	private Customer customer;
 
-	public DailyTicket(String id, double price) {
-		super(id, price, TicketType.DAILY);
+	public DailyTicket(String id, double price, Customer customer) {
+		super(id, TicketType.DAILY, price);
 		this.expiryDate = this.issuedDate.plusHours(24);
-		//ve ngay het han trong ngay chu khong phai dang 24h
+		this.customer = customer;
 	}
 	
 	public LocalDateTime getExpiryDate() {
 		return expiryDate;
 	}
-
+	
+	public Customer getCustomer() {
+		return customer;
+	}
 	@Override
 	public boolean isValidEntry(Station currentStation) {
 		return status == TicketStatus.PAID && LocalDateTime.now().isBefore(expiryDate);
@@ -24,7 +28,7 @@ public class DailyTicket extends Ticket {
 
 	@Override
 	public String toString() {
-		return "Vé Ngày [" + ticketId + "] Hết hạn: " + expiryDate.toLocalDate();
+		return "Vé Ngày [" + ticketId + "] Hết hạn: " + expiryDate.toLocalDate() + " KH: " + customer;
 	}
 	//expiryDate.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
 }

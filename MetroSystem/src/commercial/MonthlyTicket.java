@@ -4,13 +4,13 @@ import java.time.*;
 import infrastructure.Station;
 
 public class MonthlyTicket extends Ticket {
-	private Customer customer;
 	private LocalDateTime expiryDate;
+	private Customer customer;
 
 	public MonthlyTicket(String id, double price, Customer customer) {
-		super(id, price, TicketType.MONTHLY);
-		this.customer = customer;
+		super(id, TicketType.MONTHLY, price);
 		this.expiryDate = LocalDateTime.now().plusMonths(1);
+		this.customer = customer;
 	}
 
 	public Customer getCustomer() {
@@ -28,6 +28,6 @@ public class MonthlyTicket extends Ticket {
 
 	@Override
 	public String toString() {
-		return "Vé Tháng [" + ticketId + "] KH: " + customer;
+		return "Vé Tháng [" + ticketId + "] Hết hạn: " + expiryDate.toLocalDate() + " KH: " + customer;
 	}
 }

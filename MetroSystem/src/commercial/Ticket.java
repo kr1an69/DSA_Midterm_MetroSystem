@@ -6,15 +6,16 @@ import infrastructure.Station;
 
 public abstract class Ticket {
 	protected String ticketId;
-	protected double price;
 	protected TicketType type;
+	protected double price;
 	protected TicketStatus status;
 	protected LocalDateTime issuedDate;
 
 	// constructor nhan vao 2 prop, con luon tao ra ticket status new va lay .now()
 	// time
-	public Ticket(String id, double price, TicketType type) {
+	public Ticket(String id, TicketType type, double price) {
 		this.ticketId = id;
+		this.type = type;
 		this.price = price;
 		this.status = TicketStatus.NEW;
 		this.issuedDate = LocalDateTime.now();

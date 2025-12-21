@@ -55,22 +55,21 @@ public class TicketManager {
 	// vé ngày/tháng
 	public Ticket createTicket(TicketType type, String customerId) {
 		String id = (type == TicketType.DAILY ? "DAY-" : "MTH-") + System.nanoTime();
-		if (type == TicketType.DAILY) {
-			return new DailyTicket(id, 40000); // giá fix 40k
-		} else {
-			// Tìm Object Customer từ id nhập vào
-			Customer c = customersDB.get(customerId);
-			if (c == null) {
-				// Nếu chưa có thì tạo mới - để unknow và new guest đơn giản hóa (khách mới)
-				c = new Customer(customerId, "Unknown", "New Guest");
-				customersDB.put(customerId, c);
-
-				// save id khách mới vô file DB
-				FileManager.saveCustomer(c);
-				System.out.println("[SYSTEM] Đã tạo và lưu khách hàng mới: " + customerId);
-			}
-			return new MonthlyTicket(id, 200000, c); // giá fix 200k
+		// Tìm Object Customer từ id nhập vào
+		Customer customer = customersDB.get(customerId);
+		if (customer == null) {
+			// Nếu chưa có thì tạo mới - để unknow và new guest đơn giản hóa (khách mới)
+			customer = new Customer(customerId, "Unknown", "New Guest");
+			customersDB.put(customerId, customer);
+			// save id khách mới vô file DB
+			FileManager.saveCustomer(customer);
+			System.out.println("[SYSTEM] Đã tạo và lưu khách hàng mới: " + customerId);
 		}
+		if (type == TicketType.DAILY)
+			return new DailyTicket(id, 40000, customer); // giá fix 40k
+		else
+			return new MonthlyTicket(id, 200000, customer); // giá fix 200k
+
 	}
 
 	// METHODS lưu và load data tickets, orders từ file DB txt

@@ -9,7 +9,7 @@ public class SingleTicket extends Ticket {
 	private Station endStation;
 
 	public SingleTicket(String id, double price, Station start, Station end) {
-		super(id, price, TicketType.SINGLE);
+		super(id, TicketType.SINGLE, price);
 		this.startStation = start;
 		this.endStation = end;
 	}
@@ -36,6 +36,6 @@ public class SingleTicket extends Ticket {
 	
 	@Override
 	public String toString() {
-		return "Vé Lượt [" + ticketId + "] " + startStation.getName() + " -> " + endStation.getName()	;
+		return "Vé Lượt [" + ticketId + "] Từ: " + startStation.getName() + " -> " + endStation.getName()	;
 	}
 }

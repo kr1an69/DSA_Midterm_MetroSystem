@@ -7,7 +7,6 @@ import bus.*;
 import commercial.*;
 import infrastructure.*;
 import operation.*;
-import rollingstock.*;
 
 public class MetroSystemApp {
 	static TicketManager ticketManager;
