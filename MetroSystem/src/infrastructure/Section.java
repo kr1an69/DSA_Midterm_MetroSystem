@@ -31,6 +31,22 @@ public class Section {
 		return price;
 	}
     
+	public void setStartStation(Station startStation) {
+		this.startStation = startStation;
+	}
+
+	public void setEndStation(Station endStation) {
+		this.endStation = endStation;
+	}
+
+	public void setDistanceKm(double distanceKm) {
+		this.distanceKm = distanceKm;
+	}
+
+	public void setPrice(double price) {
+		this.price = price;
+	}
+
 	//xử lý logic trùng Section bằng cách check station đầu và cuối
 	@Override
 	public boolean equals(Object o) {

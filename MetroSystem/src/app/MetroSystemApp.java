@@ -214,11 +214,16 @@ public class MetroSystemApp {
 	
 	// method đơn giản là show các stations để chọn
 	public static void showStations() {
-		System.out.println("0.  Bến Thành		| 1.  Nhà Hát TP		|2. Ba Son");
-		System.out.println("3.  Văn Thánh		| 4.  Tân Cảng			|5. Thảo Điền");
-		System.out.println("6.  An Phú			| 7.  Rạch Chiếc		|8. Phước Long");
-		System.out.println("9.  Bình Thái		| 10. Thủ Đức			|11. Khu Công Nghệ Cao");
-		System.out.println("12. ĐHQG TP.HCM		| 13. Suối Tiên");
+		String str1 = String.format("0. %-20s | 1. %-20s | 2. %-20s", "Bến Thành", "Nhà Hát TP", "Ba Son");
+		String str2 = String.format("3. %-20s | 4. %-20s | 5. %-20s", "Văn Thánh", "Tân Cảng", "Thảo Điền");
+		String str3 = String.format("6. %-20s | 7. %-20s | 8. %-20s", "An Phú", "Rạch Chiếc", "Phước Long");
+		String str4 = String.format("9. %-20s | 10. %-20s| 11. %-20s", "Bình Thái", "Thủ Đức", "Khu Công Nghệ Cao");
+		String str5 = String.format("12. %-20s| 13. %-20s|", "ĐHQG TP.HCM", "Suối Tiên");
+		System.out.println(str1);
+		System.out.println(str2);
+		System.out.println(str3);
+		System.out.println(str4);
+		System.out.println(str5);
 
 	}
 }
