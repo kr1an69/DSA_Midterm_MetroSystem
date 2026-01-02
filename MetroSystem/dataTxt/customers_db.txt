@@ -1,3 +1,6 @@
-C001,0909123456,Nguyen Van A
+24130016,0909168244,Tran Tuan Anh
+23130225,0909123456, Luong Van Nhuan
+C001,0606123456,Nguyen Van A
 C002,0918888999,Tran Thi B
 C003,0977654321,Le Van Cnull,Unknown,New Guest
+null,Unknown,New Guest

@@ -46,7 +46,7 @@ public class OperationManager {
 		double avgSpeed = fleet.get(0).getAverageSpeed();
 		double totalDist = route.getTotalDistance();
 
-		// Số lượng ga trung gian phải dừng (trừ ga đầu và cuối ra)
+		// Số lượng ga trung gian phải dừng - trừ thằng ga đầu với cuối
 		int intermediateStops = route.getStations().size() - 2;
 
 		// TGian chạy 1 lượt = (totalDist/avgSpeed) + (số ga * tgian dững giữa mỗi trạm)
@@ -70,12 +70,12 @@ public class OperationManager {
 
 		LocalTime startTime = LocalTime.of(6, 0); // Giờ bắt đầu chạy
 
-		// Phân bố tàu: một nửa ở đầu, một nửa ở cuối để chạy song song
+		// đây là logic phân bố tàu: một nửa ở đầu, một nửa ở cuối để chạy song song
 		for (int i = 0; i < fleet.size(); i++) {
 			Train t = fleet.get(i);
-			trainAvailability.put(t, startTime); // Tất cả sẵn sàng lúc 6:00
+			trainAvailability.put(t, startTime); // all tàu sẵn sàng chạy lúc 6
 
-			// logic cho việc chia đôi: chẵn đi từ BT, lẻ đi từ ST
+			// logic cho việc chia đôi: chẵn đi từ BThanh, lẻ đi từ STiên
 			boolean isAtStart = (i % 2 == 0);
 			trainAtStartStation.put(t, isAtStart);
 
@@ -118,6 +118,7 @@ public class OperationManager {
 		}
 
 		// Sắp xếp lại lịch trình theo giờ để in ra cho đẹp
+		//java8
 		dailySchedule.sort(Comparator.comparing(Trip::getStartTime));
 		System.out.println("[SYSTEM] Đã khởi tạo lịch trình: " + dailySchedule.size() + " chuyến (" + fleet.size() + " tàu hoạt động).");
 

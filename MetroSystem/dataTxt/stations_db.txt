@@ -1,0 +1,14 @@
+S0,Bến Thành
+S1,Nhà Hát TP
+S2,Ba Son
+S3,Văn Thánh
+S4,Tân Cảng
+S5,Thảo Điền
+S6,An Phú
+S7,Rạch Chiếc
+S8,Phước Long
+S9,Bình Thái
+S10,Thủ Đức
+S11,Khu Công Nghệ Cao
+S12,ĐHQG TP.HCM
+S13,Suối Tiên

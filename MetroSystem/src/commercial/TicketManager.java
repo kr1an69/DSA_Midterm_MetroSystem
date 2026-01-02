@@ -19,8 +19,8 @@ public class TicketManager {
 	private List<Order> ordersDB;// = new ArrayList<>();
 	private Route route;
 
-	public TicketManager(Route r) {
-		this.route = r;
+	public TicketManager(Route route) {
+		this.route = route;
 		// load db theo thứ tự tránh sai sót
 		// cus trước
 		this.customersDB = FileManager.loadCustomers();
@@ -32,15 +32,7 @@ public class TicketManager {
 		this.ordersDB = FileManager.loadOrders(ticketDB);
 	}
 
-	// checkin khi lên tàu
-	public void checkInTicket(String ticketId) {
-		ticketDB.get(ticketId).useTicket();
-		;
-	}
-
-	public void cancelTicket(String ticketID) {
-		ticketDB.get(ticketID).cancelTicket();
-	}
+	
 
 	// METHODS tạo vé để bán
 	// vé lượt
@@ -104,7 +96,11 @@ public class TicketManager {
 			System.out.println("CHECK-IN THÀNH CÔNG: Mời vào ga " + currentStation.getName());
 			return true;
 		} else {
-			System.out.println("CHECK-IN THẤT BẠI: Vé không hợp lệ tại ga này hoặc chưa thanh toán!");
+			if (t instanceof SingleTicket) {
+				System.out.println("CHECK-IN THẤT BẠI: Vé không hợp lệ tại ga này hoặc chưa thanh toán !");
+		    } else {
+		    	System.out.println("CHECK-IN THẤT BẠI: Vé đã hết hạn sử dụng !");
+		    }
 			return false;
 		}
 	}
@@ -113,18 +109,83 @@ public class TicketManager {
 	public boolean processCheckOut(String ticketId, Station currentStation) {
 		Ticket t = ticketDB.get(ticketId);
 		if (t == null) {
-			System.out.println("LỖI: Không tìm thấy vé!");
+			System.out.println("LỖI: Không tìm thấy vé !");
 			return false;
 		}
+		
+		if (t.getStatus() != TicketStatus.IN_TRIP) {
+	        System.out.println("CHECK-OUT THẤT BẠI: Vé chưa Check-in !");
+	        return false;
+	    }
+		
+		if (t instanceof SingleTicket) {
+	        // vé lượt - single: tức là vé này dùng 1 lần duy nhất và đổi thành used
+			if (t.isValidExit(currentStation)) {
+				t.setStatus(TicketStatus.USED); // đổi status vé đã sử dụng
+				System.out.println("CHECK-OUT THÀNH CÔNG: Cảm ơn quý khách. Hẹn gặp lại !");
+				return true;
+			} else {
+				System.out.println("CHECK-OUT THẤT BẠI: Bạn đi sai ga !");
+				return false;
+			}
+	    } else {
+	    	// đây là check vé daily và monthly, vì 2 thằng này không có trạng thái đã dùng
+	    	// mà nó được xác định bằng việc đã thanh toán chưa và còn hạn không, tức là
+	        // dạng vé thời gian, ra khỏi ga vẫn dùng tiếp được nếu còn hạn -> Quay về PAID
+	        // miễn là check hạn sử dụng (expiryDate) ở lần Check-in tiếp theo
+	        t.setStatus(TicketStatus.PAID);
+	        System.out.println("CHECK-OUT THÀNH CÔNG: Cảm ơn quý khách. Hẹn gặp lại !");
+	        return true;
+	    }
+	}
+	
+	// hoàn vé
+	public void processRefund(String ticketId) {
+		Ticket t = ticketDB.get(ticketId);
+		if (t == null) {
+			System.out.println("LỖI: Không tìm thấy vé có ID: " + ticketId);
+			return;
+		}
 
-		if (t.isValidExit(currentStation)) {
-			t.setStatus(TicketStatus.USED); // đổi status vé đã sử dụng
-			System.out.println("CHECK-OUT THÀNH CÔNG: Cảm ơn quý khách. Hẹn gặp lại !");
-			return true;
+		// điều kiện hoàn vé - chỉ khi đã thanh toán PAID, những trường hợp còn lại
+		// NEW, IN_TRIP, USED, EXPIRED, CANCELED - không cho phép hủy
+		if (t.getStatus() != TicketStatus.PAID) {
+			System.out.println("TỪ CHỐI: Vé này đã sử dụng, đã hết hạn hoặc đã hủy, không thể hoàn tiền.");
+			return;
+		}
+
+		// tìm Order chứa vé này (Dùng Java 8 Stream để lọc)
+		Optional<Order> targetOrder = ordersDB.stream()
+				.filter(o -> o.getTickets().stream().anyMatch(ticket -> ticket.getTicketId().equals(ticketId)))
+				.findFirst();
+
+		if (targetOrder.isPresent()) {
+			Order order = targetOrder.get();
+
+			// 4. Update trạng thái vé
+			t.cancelTicket(); // Chuyển sang CANCELED
+
+			// 5. Trừ tiền Order
+			// Lưu ý: Ta không xóa vé khỏi list tickets của Order để giữ lịch sử truy vết
+			// Nhưng ta phải trừ tiền doanh thu đi
+			double refundAmount = t.getPrice();
+			double newTotal = order.getTotalPrice() - refundAmount;
+			order.setTotalPrice(Math.max(0, newTotal)); // Tránh âm tiền
+
+			System.out.println("✅ HOÀN VÉ THÀNH CÔNG!");
+			System.out.println("   -> Vé " + ticketId + " đã hủy.");
+			System.out.println(
+					"   -> Đơn hàng " + order.getOrderId() + " giảm " + String.format("%,.0f", refundAmount) + " VND.");
+			System.out.println("   -> Tổng tiền mới: " + String.format("%,.0f", order.getTotalPrice()) + " VND.");
+
+			// 6. Cập nhật lại File Database (Ghi đè lại file để update status và price)
+			// Lưu ý: Cách này hơi tốn kém I/O nếu file lớn, nhưng đảm bảo nhất quán cho đồ
+			// án
+			FileManager.updateOrderDatabase(ordersDB); // Cần thêm hàm này bên FileManager
+			FileManager.updateTicketDatabase(ticketDB); // Cần thêm hàm này bên FileManager
+
 		} else {
-			// Logic phạt tiền có thể thêm ở đây
-			System.out.println("CHECK-OUT THẤT BẠI: Bạn đi sai ga hoặc chưa check-in đầu vào!");
-			return false;
+			System.out.println("⚠️ CẢNH BÁO: Tìm thấy vé nhưng không tìm thấy Đơn hàng gốc chứa nó (Lỗi dữ liệu).");
 		}
 	}
 
@@ -159,14 +220,6 @@ public class TicketManager {
 		return stats;
 	}
 
-	// Lấy các đơn hàng giá trị cao (Sắp xếp theo giá tiền tăng dần)
-	public TreeMap<Double, Order> getHighValueOrders() {
-		TreeMap<Double, Order> stats = new TreeMap<>();
-		for (Order ord : ordersDB) {
-			stats.put(ord.getTotalPrice(), ord);
-		}
-		return stats;
-	}
 	// END - Các methods trả về TreeMap cơ bản - tính toán
 
 	// Các methods show ra màn hình - báo cáo
@@ -175,75 +228,96 @@ public class TicketManager {
 	// 1. descendingMap() -> đơn giản nhanh
 	// 2. trả cặp key trong map ra thành list và duyệt ngược bằng for hoặc reverse()
 	// 3. dùng comparator khi decalre map
-	public void showHourlyReport(LocalDate dateToShow, boolean isAscending) {
+
+	// Show báo cáo report
+
+	// report theo giờ trong ngày cụ thể
+	public void showHourlyReport(LocalDate dateToShow, boolean sortByRevenue, boolean isAscending) {
 		TreeMap<Integer, Double> stats = getHourlyRevenueStats(dateToShow);
-		List<Integer> sortedKeys = new ArrayList<>(stats.keySet());
-		// cách gọn
-		/*
-		 * Map<Integer, Double> viewMap = isAscending ? stats : stats.descendingMap();
-		 * for (Map.Entry<Integer, Double> entry : viewMap.entrySet()) {
-		 * System.out.printf("   -> Khung giờ %02d:00 : %,12.0f VND\n", entry.getKey(),
-		 * entry.getValue()); }
-		 */
-		if (!isAscending) {
-			int sizeSortedKeys = sortedKeys.size();
-			for (int i = 0; i < sizeSortedKeys / 2; i++) {
-				Integer tmpHour = sortedKeys.get(i);
-				sortedKeys.set(i, sortedKeys.get(sizeSortedKeys - 1 - i));
-				sortedKeys.set(sizeSortedKeys - 1 - i, tmpHour);
-			}
-		}
-		System.out.println("\n=== DOANH THU CHI TIẾT NGÀY: " + dateToShow + " ===");
+
 		if (stats.isEmpty()) {
-			System.out.println("Không có giao dịch nào trong ngày này");
+			System.out.println("\n--- KHÔNG CÓ GIAO DỊCH TRONG NGÀY " + dateToShow + " ---");
 			return;
 		}
 
+		// Chuyển sang List để sort
+		List<Map.Entry<Integer, Double>> list = new ArrayList<>(stats.entrySet());
+
+		if (sortByRevenue) {
+			// Sort theo value giá tiền
+			list.sort(Map.Entry.comparingByValue());
+		} else {
+			// Sort theo key giờ
+			list.sort(Map.Entry.comparingByKey());
+		}
+
+		// Nếu chọn giảm dần thì đảo ngược list
+		// Có thể dùng Collections.reverse()
+		if (!isAscending) {
+			int n = list.size();
+			// duyệt thủ công từ đầu đến giữa danh sách, hoán đổi phần tử i với (n-1-i)
+			for (int i = 0; i < n / 2; i++) {
+				Map.Entry<Integer, Double> temp = list.get(i);
+				list.set(i, list.get(n - 1 - i));
+				list.set(n - 1 - i, temp);
+			}
+		}
+
+		System.out.println("\n=== DOANH THU CHI TIẾT NGÀY: " + dateToShow + " ===");
+		System.out.println(sortByRevenue ? "(Sắp xếp theo Doanh Thu)" : "(Sắp xếp theo Giờ)");
+		System.out.println("------------------------------------------------");
+
 		double totalPrice = 0;
-		for (Integer hour : sortedKeys) {
-			System.out.printf("   -> Khung giờ %02d:00 : %,12.0f VND\n", hour, stats.get(hour));
+		for (Map.Entry<Integer, Double> entry : list) {
+			System.out.printf("   -> Khung giờ %02d:00 : %,12.0f VND\n", entry.getKey(), entry.getValue());
+			totalPrice += entry.getValue();
 		}
 		System.out.println("------------------------------------------------");
-		System.out.printf("   TỔNG CỘNG      : %,15.0f VND\n", totalPrice);
-
+		System.out.printf("   TỔNG CỘNG       : %,15.0f VND\n", totalPrice);
 	}
 
-	// với boolean nếu true trả mặc định là tăng giần - false giảm dần
-	public void showDailyReport(boolean isAscending) {
-		// Gọi hàm tính toán để lấy TreeMap
+	// report theo các ngày gần đây
+	public void showDailyReport(boolean sortByRevenue, boolean isAscending) {
 		TreeMap<LocalDate, Double> stats = getDailyRevenueStats();
-		List<LocalDate> sortedKeys = new ArrayList<LocalDate>(stats.keySet());
-		// cách gọn
-		/*
-		 * Map<LocalDate, Double> viewMap = isAscending ? stats : stats.descendingMap();
-		 * for (Map.Entry<LocalDate, Double> entry : viewMap.entrySet()) {
-		 * System.out.printf("   -> Ngày %s : %,15.0f VND\n", entry.getKey(),
-		 * entry.getValue()); }
-		 */
+
+		if (stats.isEmpty()) {
+			System.out.println("\n--- CHƯA CÓ DỮ LIỆU GIAO DỊCH ---");
+			return;
+		}
+
+		// Chuyển sang List để sort
+		List<Map.Entry<LocalDate, Double>> list = new ArrayList<>(stats.entrySet());
+
+		if (sortByRevenue) {
+			list.sort(Map.Entry.comparingByValue());
+		} else {
+			// Sort theo key ngày
+			list.sort(Map.Entry.comparingByKey());
+		}
+
+		// dùng Collections.reverse()
 		if (!isAscending) {
-			int sizeSortedKeys = sortedKeys.size();
-			for (int i = 0; i < sizeSortedKeys / 2; i++) {
-				LocalDate tmpDate = sortedKeys.get(i);
-				sortedKeys.set(i, sortedKeys.get(sizeSortedKeys - 1 - i));
-				sortedKeys.set(sizeSortedKeys - 1 - i, tmpDate);
+			int n = list.size();
+			// chơi thủ công bằng Swapping đối xứng two-pointer
+			for (int i = 0; i < n / 2; i++) {
+				Map.Entry<LocalDate, Double> temp = list.get(i);
+				list.set(i, list.get(n - 1 - i));
+				list.set(n - 1 - i, temp);
 			}
 		}
 
 		System.out.println("\n=== BÁO CÁO DOANH THU TỔNG HỢP THEO NGÀY ===");
-		if (stats.isEmpty()) {
-			System.out.println("Chưa có dữ liệu giao dịch.");
-			return;
-		}
+		System.out.println(sortByRevenue ? "(Sắp xếp theo Doanh Thu)" : "(Sắp xếp theo Thời Gian)");
+		System.out.println("------------------------------------------------");
 
 		double totalPrice = 0;
-		for (LocalDate date : sortedKeys) {
-			Double money = stats.get(date);
-			System.out.printf("   -> Ngày %s : %,15.0f VND\n", date, money);
-			totalPrice += money;
+		for (Map.Entry<LocalDate, Double> entry : list) {
+			System.out.printf("   -> Ngày %s : %,15.0f VND\n", entry.getKey(), entry.getValue());
+			totalPrice += entry.getValue();
 		}
 
 		System.out.println("------------------------------------------------");
-		System.out.printf("   TỔNG CỘNG      : %,15.0f VND\n", totalPrice);
+		System.out.printf("   TỔNG CỘNG       : %,15.0f VND\n", totalPrice);
 	}
 	// END - Các methods show ra màn hình - báo cáo
 }

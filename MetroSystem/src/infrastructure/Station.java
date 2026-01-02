@@ -16,9 +16,6 @@ public class Station {
 	public String getName() {
 		return name;
 	}
-//    @Override
-//    public String toString() { return name; }
-//
 	
 	// xử lý vấn đề trùng Station bằng việc check ID
     @Override
@@ -27,5 +24,11 @@ public class Station {
         if (o == null || getClass() != o.getClass()) return false;
         Station station = (Station) o;
         return id.equals(station.id);
+    }
+    
+    @Override
+    public int hashCode() {
+        // hash ID
+        return id != null ? id.hashCode() : 0;
     }
 }

@@ -1,0 +1,14 @@
+01,S0,Chợ Bến Thành|Phố đi bộ Nguyễn Huệ|Nhà thờ Đức Bà
+18,S1,Nhà hát TP|Bưu điện TP|Dinh Độc Lập
+36,S2,Ba Son|Cảng Sài Gòn|Công viên Bạch Đằng
+03,S3,Chợ Văn Thánh|Trường THPT Lê Quý Đôn|Đường Võ Văn Tần
+04,S4,Cảng Tân Cảng|Khu đô thị Him Lam|Đường Nguyễn Văn Trỗi
+09,S5,Trường AIS|Villa Thảo Điền|Cầu Sài Gòn
+20,S6,Siêu thị Metro An Phú|Khu dân cư Bình An|Trường quốc tế BIS
+54,S7,Chợ Rạch Chiếc|Bệnh viện Ung Bướu|Sân bay Tân Sơn Nhất
+71,S8,Trường ĐH Nông Lâm|Chợ Linh Xuân|Khu dân cư Vạn Phúc
+12,S9,Bệnh viện Quận 9|Chợ Bình Thái|Trường THPT Nguyễn Khuyến
+152,S10,Chợ Thủ Đức|KCN Sóng Thần|Phường Linh Xuân
+86,S11,ĐHSPKT|ĐHBK|Làng ĐH Quốc Gia
+90,S12,ĐHQG TP.HCM|Khu đô thị Phú Mỹ Hưng|Vincom Mega Mall
+19,S13,Suối Tiên|Chợ Long Bình|KCN Long Thành

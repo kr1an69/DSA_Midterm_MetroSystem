@@ -64,11 +64,13 @@ public class Route {
 	}
 
 	public double getTotalDistance() {
-		double result = 0;
-		for (Section s : sections) {
-			result += s.getDistanceKm();
-		}
-		return result;
+		/*
+		 * double result = 0; for (Section s : sections) { result += s.getDistanceKm();
+		 * } return result;
+		 */
+		// JAVA 8 - dùng stream và :: truy cập thẳng method
+		return sections.stream().mapToDouble(Section::getDistanceKm).sum();
+
 	}
 
 	// tính giá tiền vé lượt dựa trên cộng dồn giá các section

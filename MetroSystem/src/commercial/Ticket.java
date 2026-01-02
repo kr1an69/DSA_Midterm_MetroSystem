@@ -65,6 +65,8 @@ public abstract class Ticket {
 	// logic check-in
 	// Mặc định phải là PAID mới được vào
 	// thằng method này DailyTicket và MonthlyTicket dùng là đủ không cần isValidExit
+	// điều này đảm bảo thằng daily và monthly chỉ cần checkin thành công là ok
+	// khi checkout mặc dù đã hết hạn trong lúc đang đi thì vẫn không vấn đề
 	public boolean isValidEntry(Station station) {
 		return this.status == TicketStatus.PAID;
 	}

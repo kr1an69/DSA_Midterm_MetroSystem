@@ -56,6 +56,7 @@ public class Section {
 	    return Objects.equals(startStation, section.startStation) &&
 	           Objects.equals(endStation, section.endStation);
 	}
+	//nguyên tắc, override thằng equals phải override thằng hashCode
 	@Override
 	public int hashCode() {
 	    return Objects.hash(startStation, endStation);

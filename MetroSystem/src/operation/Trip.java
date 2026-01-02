@@ -63,7 +63,7 @@ public class Trip {
 		 */
 		double hoursElapsed = Duration.between(startTime, currentTime).toMinutes() / 60.0;
 		double currentSpeed = this.train.getAverageSpeed();
-		double distanceTraveled = hoursElapsed * currentSpeed;
+		//double distanceTraveled = hoursElapsed * currentSpeed;
 
 		// biến đếm cho việc đếm qduong và tgian
 		/**

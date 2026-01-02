@@ -30,5 +30,4 @@ public class DailyTicket extends Ticket {
 	public String toString() {
 		return "Vé Ngày [" + ticketId + "] Hết hạn: " + expiryDate.toLocalDate() + " KH: " + customer;
 	}
-	//expiryDate.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
 }

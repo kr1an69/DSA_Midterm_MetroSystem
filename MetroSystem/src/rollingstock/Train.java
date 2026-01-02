@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Train {
 	private String id;
-	private List<Locomotive> locomotives = new ArrayList<>(); //cố định là 2 Loco
+	private List<Locomotive> locomotives = new ArrayList<>(); // cố định là 2 Loco
 	private List<Carriage> carriages = new LinkedList<>(); // LinkedList thêm xóa dễ
 
 	public Train(String id, Locomotive firstLoco) {
@@ -12,7 +12,7 @@ public class Train {
 		this.locomotives.add(firstLoco);
 	}
 
-	//them loco cuoi cung vo
+	// them loco cuoi cung vo
 	public void addLocomotive(Locomotive extraLoco) {
 		locomotives.add(extraLoco);
 	}
@@ -22,13 +22,15 @@ public class Train {
 	}
 
 	public int getTotalOfSeats() {
-		int total = 0;
-		for (Carriage c : carriages)
-			total += c.getNumberOfSeats();
-		return total;
+//		int total = 0;
+//		for (Carriage c : carriages)
+//			total += c.getNumberOfSeats();
+//		return total;
+		// Java 8
+		return carriages.stream().mapToInt(Carriage::getNumberOfSeats).sum();
 	}
 
-	//lấy tốc độ trung bình của đầu máy (locomotive)
+	// lấy tốc độ trung bình của đầu máy (locomotive)
 	public double getAverageSpeed() {
 		if (locomotives.isEmpty())
 			throw new Error("This train doesn't have any Loco");
@@ -51,6 +53,5 @@ public class Train {
 	public List<Carriage> getCarriages() {
 		return carriages;
 	}
-	
-	
+
 }
